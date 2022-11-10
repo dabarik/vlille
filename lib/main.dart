@@ -1,3 +1,4 @@
+import 'package:favorite_button/favorite_button.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:api_vliil/station.dart';
@@ -28,24 +29,18 @@ class MyStatefulWidget extends StatefulWidget {
 }
 
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
-  late List<Station> _stations;
+  late final List<Station> _stations;
   bool _isLoading = true;
   late Future<Station> futureStation;
   final int _selectedIndex = 0;
-  bool isFav = false;
+  final List<Station> favStation = [];
+  final bool isStarred = false;
 
   @override
   void initState() {
     super.initState();
     getStations();
-    _loadFav();
-  }
-
-  Future<void> _loadFav() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isFav = (prefs.getBool('isfav') ?? false);
-    });
+    _addFavStation();
   }
 
   Future<void> getStations() async {
@@ -63,6 +58,18 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           .where((element) =>
               element.nom.toLowerCase().contains(value.toLowerCase()))
           .toList();
+    });
+  }
+
+  Future<void> _addFavStation() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isStarred', true);
+    print(isStarred);
+  }
+
+  void removeFavStation(Station station) {
+    setState(() {
+      favStation.remove(station);
     });
   }
 
@@ -104,7 +111,7 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                           child: Text(
                             "Aucun résultat",
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
@@ -148,20 +155,24 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                                             mainAxisSize: MainAxisSize.min,
                                             children: <Widget>[
                                               ListTile(
-                                                  leading: Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            8.0),
-                                                    child: GestureDetector(
-                                                      child: IconButton(
-                                                        icon: const Icon(
-                                                            Icons.star),
-                                                        onPressed: (() {
-                                                          SizedBox();
-                                                        }),
-                                                      ),
-                                                    ),
+                                                  contentPadding:
+                                                      const EdgeInsets.all(8.0),
+                                                  leading: const Padding(
+                                                    padding: EdgeInsets.only(
+                                                        left: 4.0),
                                                   ),
+                                                  trailing: StarButton(
+                                                      iconSize: 35,
+                                                      valueChanged:
+                                                          (isStarred) {
+                                                        if (isStarred) {
+                                                          _addFavStation();
+                                                        } else {
+                                                          removeFavStation(
+                                                              display_list[
+                                                                  index]);
+                                                        }
+                                                      }),
                                                   title: Text(
                                                       display_list[index].nom,
                                                       style: const TextStyle(
@@ -175,14 +186,16 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                                                     children: [
                                                       Text(
                                                           'Nombre de place disponible : ${display_list[index].nbplacesdispo}',
-                                                          style: const TextStyle(
-                                                              color: Colors
-                                                                  .white)),
+                                                          style:
+                                                              const TextStyle(
+                                                                  color: Colors
+                                                                      .white)),
                                                       Text(
                                                           'Nombre de vélos disponibles : ${display_list[index].nbvelosdispo}',
-                                                          style: const TextStyle(
-                                                              color:
-                                                                  Colors.white))
+                                                          style:
+                                                              const TextStyle(
+                                                                  color: Colors
+                                                                      .white))
                                                     ],
                                                   )),
                                             ]),

@@ -31,7 +31,7 @@ class detailPage extends StatelessWidget {
         body: FlutterMap(
           options: MapOptions(
             center: LatLng(latitude, longitude),
-            zoom: 15,
+            zoom: 16,
           ),
           children: [
             TileLayer(
