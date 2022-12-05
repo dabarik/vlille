@@ -1,4 +1,6 @@
-import 'package:favorite_button/favorite_button.dart';
+import 'dart:convert';
+import 'dart:ffi';
+import 'package:api_vliil/favPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:api_vliil/station.dart';
@@ -30,24 +32,19 @@ class MyStatefulWidget extends StatefulWidget {
 
 class _MyStatefulWidgetState extends State<MyStatefulWidget> {
   late final List<Station> _stations;
-  bool _isLoading = true;
-  late Future<Station> futureStation;
-  final int _selectedIndex = 0;
-  final List<Station> favStation = [];
-  final bool isStarred = false;
+  late List<int> favStation = [];
 
   @override
   void initState() {
     super.initState();
     getStations();
-    _addFavStation();
+    favStation.clear();
+    loadData();
   }
 
   Future<void> getStations() async {
     _stations = await fetchStation();
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() {});
   }
 
   late List<Station> display_list = List.from(_stations);
@@ -61,16 +58,31 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     });
   }
 
-  Future<void> _addFavStation() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isStarred', true);
-    print(isStarred);
+  loadData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> tempo = prefs.getStringList("station_key") ?? [];
+
+    favStation = tempo.map((e) => int.parse(e)).toList();
   }
 
-  void removeFavStation(Station station) {
+  _addFavStation(int libelle) async {
     setState(() {
-      favStation.remove(station);
+      favStation.add(libelle);
     });
+    _saveFavStation();
+  }
+
+  _removeFavStation(int libelle) {
+    setState(() {
+      favStation.remove(libelle);
+    });
+    _saveFavStation();
+  }
+
+  _saveFavStation() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> tempo = favStation.map((e) => e.toString()).toList();
+    prefs.setStringList('station_key', tempo);
   }
 
   @override
@@ -78,9 +90,21 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
     return Scaffold(
         appBar: AppBar(
           title: const Text("V'Lille"),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => favPage(
+                          display_list: display_list,
+                          favStation: favStation,
+                        )));
+              },
+              icon: const Icon(Icons.favorite_border),
+            )
+          ],
         ),
         body: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,22 +158,17 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                                         onTap: (() {
                                           Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                  builder: (context) => detailPage(
-                                                      longitude: display_list[
-                                                              index]
-                                                          .longitude,
-                                                      latitude: display_list[
-                                                              index]
-                                                          .latitude,
-                                                      nom: display_list[index]
-                                                          .nom,
-                                                      nbPlacesDispos:
-                                                          display_list[
-                                                                  index]
-                                                              .nbplacesdispo,
-                                                      nbVelosDispos:
-                                                          display_list[index]
-                                                              .nbvelosdispo)));
+                                                  builder: (context) =>
+                                                      detailPage(
+                                                        longitude:
+                                                            display_list[index]
+                                                                .longitude,
+                                                        latitude:
+                                                            display_list[index]
+                                                                .latitude,
+                                                        nom: display_list[index]
+                                                            .nom,
+                                                      )));
                                         }),
                                         child: Column(
                                             mainAxisSize: MainAxisSize.min,
@@ -161,18 +180,35 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                                                     padding: EdgeInsets.only(
                                                         left: 4.0),
                                                   ),
-                                                  trailing: StarButton(
-                                                      iconSize: 35,
-                                                      valueChanged:
-                                                          (isStarred) {
-                                                        if (isStarred) {
-                                                          _addFavStation();
-                                                        } else {
-                                                          removeFavStation(
-                                                              display_list[
-                                                                  index]);
-                                                        }
-                                                      }),
+                                                  trailing: IconButton(
+                                                    icon: Icon(favStation
+                                                            .contains(
+                                                                display_list[
+                                                                        index]
+                                                                    .libelle)
+                                                        ? Icons.favorite
+                                                        : Icons
+                                                            .favorite_border),
+                                                    color: favStation.contains(
+                                                            display_list[index]
+                                                                .libelle)
+                                                        ? Colors.red
+                                                        : Colors.white70,
+                                                    iconSize: 25,
+                                                    onPressed: () {
+                                                      if (favStation.contains(
+                                                          display_list[index]
+                                                              .libelle)) {
+                                                        _removeFavStation(
+                                                            display_list[index]
+                                                                .libelle);
+                                                      } else {
+                                                        _addFavStation(
+                                                            display_list[index]
+                                                                .libelle);
+                                                      }
+                                                    },
+                                                  ),
                                                   title: Text(
                                                       display_list[index].nom,
                                                       style: const TextStyle(

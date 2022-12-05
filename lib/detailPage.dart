@@ -14,15 +14,11 @@ class detailPage extends StatelessWidget {
   final double longitude;
   final double latitude;
   final String nom;
-  final int nbPlacesDispos;
-  final int nbVelosDispos;
 
   detailPage(
       {required this.longitude,
       required this.latitude,
-      required this.nom,
-      required this.nbPlacesDispos,
-      required this.nbVelosDispos});
+      required this.nom,});
 
   @override
   Widget build(BuildContext context) {
