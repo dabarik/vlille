@@ -1,16 +1,6 @@
 # api_vliil
 
-A new Flutter project.
+Une application ressourçant toutes les stations de V'Lille de Lille avec la possibilité de mettre en favoris ceux que vous prenez régulièrement.
+Vous avez aussi la possibilité de voir sur une Map où se trouve la station. 
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Pour lancer le projet, il faut d'abord lancer votre émulateur puis lancer le projet Flutter avec : flutter run
